@@ -1,5 +1,12 @@
 #!/bin/sh
 
+# Server Node Installation
+# export DEBUG=1 && export INSTALL_RKE2_MIRROR=cn && export INSTALL_RKE2_VERSION=v1.33.5+rke2r1 && ./get_rke2_io.sh > get_rke2_io.log 2>&1
+
+# Linux Agent (Worker) Node Installation
+# export DEBUG=1 && export INSTALL_RKE2_MIRROR=cn && export INSTALL_RKE2_VERSION=v1.33.5+rke2r1 && export INSTALL_RKE2_TYPE="agent" && ./get_rke2_io.sh > get_rke2_io.log 2>&1
+
+
 set -e
 
 if [ "${DEBUG}" = 1 ]; then
@@ -91,12 +98,16 @@ fatal() {
 # check_target_mountpoint return success if the target directory is on a dedicated mount point
 check_target_mountpoint() {
     mountpoint -q "${INSTALL_RKE2_TAR_PREFIX}"
+    # mountpoint -q /usr/local
 }
 
 # check_target_ro returns success if the target directory is read-only
 check_target_ro() {
     touch "${INSTALL_RKE2_TAR_PREFIX}"/.rke2-ro-test && rm -rf "${INSTALL_RKE2_TAR_PREFIX}"/.rke2-ro-test
     test $? -ne 0
+    # touch /usr/local/.rke2-ro-test
+    # rm -rf /usr/local/.rke2-ro-test
+    # test 0 -ne 0
 }
 
 
@@ -112,27 +123,39 @@ setup_env() {
     # --- make sure artifact url prefix has a value
     if [ -z "${INSTALL_RKE2_ARTIFACT_URL}" ]; then
         INSTALL_RKE2_ARTIFACT_URL="https://github.com/rancher/rke2/releases/download"
+        if [ "${INSTALL_RKE2_MIRROR}" = cn ]; then
+            INSTALL_RKE2_ARTIFACT_URL="https://rancher-mirror.rancher.cn/rke2/releases/download"
+        fi
     fi
+    # INSTALL_RKE2_ARTIFACT_URL=https://rancher-mirror.rancher.cn/rke2/releases/download
 
     # --- make sure install channel has a value
     if [ -z "${INSTALL_RKE2_CHANNEL}" ]; then
         INSTALL_RKE2_CHANNEL="stable"
     fi
+    # INSTALL_RKE2_CHANNEL=stable
 
     # --- make sure install type has a value
     if [ -z "${INSTALL_RKE2_TYPE}" ]; then
         INSTALL_RKE2_TYPE="${INSTALL_RKE2_EXEC:-server}"
     fi
+    echo "INSTALL_RKE2_TYPE:${INSTALL_RKE2_TYPE}"
+    # INSTALL_RKE2_TYPE:server
+    # INSTALL_RKE2_TYPE:agent
 
     # --- use rpm install method if available by default
     if [ -z "${INSTALL_RKE2_ARTIFACT_PATH}" ] && [ -z "${INSTALL_RKE2_COMMIT}" ] && [ -z "${INSTALL_RKE2_METHOD}" ] && command -v yum >/dev/null 2>&1; then
         INSTALL_RKE2_METHOD="rpm"
     fi
+    echo "INSTALL_RKE2_METHOD:${INSTALL_RKE2_METHOD}"
+    # INSTALL_RKE2_METHOD:
 
     # --- install tarball to /usr/local by default, except if /usr/local is on a separate partition or is read-only
     # --- in which case we go into /opt/rke2.
     if [ -z "${INSTALL_RKE2_TAR_PREFIX}" ]; then
         INSTALL_RKE2_TAR_PREFIX=${DEFAULT_TAR_PREFIX}
+        # INSTALL_RKE2_TAR_PREFIX=/usr/local
+
         if check_target_mountpoint || check_target_ro; then
             INSTALL_RKE2_TAR_PREFIX="/opt/rke2"
             warn "${DEFAULT_TAR_PREFIX} is read-only or a mount point; installing to ${INSTALL_RKE2_TAR_PREFIX}"
@@ -142,12 +165,26 @@ setup_env() {
     if [ -z "${INSTALL_RKE2_AGENT_IMAGES_DIR}" ]; then
         INSTALL_RKE2_AGENT_IMAGES_DIR="/var/lib/rancher/rke2/agent/images"
     fi
+    # INSTALL_RKE2_AGENT_IMAGES_DIR=/var/lib/rancher/rke2/agent/images
 }
 
 # check_method_conflict will exit with an error if the user attempts to install
 # via tar method on a host with existing RPMs.
 check_method_conflict() {
      . /etc/os-release
+    # PRETTY_NAME=Ubuntu 22.04.4 LTS
+    # NAME=Ubuntu
+    # VERSION_ID=22.04
+    # VERSION=22.04.4 LTS (Jammy Jellyfish)
+    # VERSION_CODENAME=jammy
+    # ID=ubuntu
+    # ID_LIKE=debian
+    # HOME_URL=https://www.ubuntu.com/
+    # SUPPORT_URL=https://help.ubuntu.com/
+    # BUG_REPORT_URL=https://bugs.launchpad.net/ubuntu/
+    # PRIVACY_POLICY_URL=https://www.ubuntu.com/legal/terms-and-policies/privacy-policy
+    # UBUNTU_CODENAME=jammy
+
     case ${INSTALL_RKE2_METHOD} in
     yum | rpm | dnf)
         if [ "${ID_LIKE%%[ ]*}" = "suse" ]; then
@@ -169,9 +206,12 @@ check_method_conflict() {
 # fatal if architecture not supported.
 setup_arch() {
     case ${ARCH:=$(uname -m)} in
+    # ARCH=amd64
     x86_64|amd64)
         ARCH=amd64
         SUFFIX=$(uname -s | tr '[:upper:]' '[:lower:]')-${ARCH}
+        # ARCH=amd64
+        # SUFFIX=linux-amd64
         ;;
     aarch64|arm64)
         ARCH=arm64
@@ -191,6 +231,9 @@ setup_arch() {
 # network downloader executable.
 verify_downloader() {
     cmd="$(command -v "${1}")"
+    # command -v curl
+    # cmd=/usr/bin/curl
+
     if [ -z "${cmd}" ]; then
         return 1
     fi
@@ -200,6 +243,7 @@ verify_downloader() {
 
     # Set verified executable as our downloader program and return success
     DOWNLOADER=${cmd}
+    # DOWNLOADER=/usr/bin/curl
     return 0
 }
 
@@ -223,10 +267,21 @@ verify_fapolicyd() {
 # and cleans up when done.
 setup_tmp() {
     TMP_DIR=$(mktemp -d -t rke2-install.XXXXXXXXXX)
+    # mktemp -d -t rke2-install.XXXXXXXXXX
+    # TMP_DIR=/tmp/rke2-install.OVZEnZ4uJW
+
     TMP_CHECKSUMS=${TMP_DIR}/rke2.checksums
+    # TMP_CHECKSUMS=/tmp/rke2-install.OVZEnZ4uJW/rke2.checksums
+
     TMP_TARBALL=${TMP_DIR}/rke2.tarball
+    # TMP_TARBALL=/tmp/rke2-install.OVZEnZ4uJW/rke2.tarball
+
     TMP_AIRGAP_CHECKSUMS=${TMP_DIR}/rke2-images.checksums
+    # TMP_AIRGAP_CHECKSUMS=/tmp/rke2-install.OVZEnZ4uJW/rke2-images.checksums
+
     TMP_AIRGAP_TARBALL=${TMP_DIR}/rke2-images.tarball
+    # TMP_AIRGAP_TARBALL=/tmp/rke2-install.OVZEnZ4uJW/rke2-images.tarball
+
     cleanup() {
         code=$?
         set +e
@@ -242,19 +297,45 @@ get_release_version() {
     if [ -z "${INSTALL_RKE2_COMMIT}" ] && [ -z "${INSTALL_RKE2_VERSION}" ]; then
         info "finding release for channel ${INSTALL_RKE2_CHANNEL}"
         INSTALL_RKE2_CHANNEL_URL=${INSTALL_RKE2_CHANNEL_URL:-'https://update.rke2.io/v1-release/channels'}
+        if [ "${INSTALL_RKE2_MIRROR}" = cn ]; then
+            INSTALL_RKE2_CHANNEL_URL="https://rancher-mirror.rancher.cn/rke2/channels"
+        fi
+        # INSTALL_RKE2_CHANNEL_URL=https://rancher-mirror.rancher.cn/rke2/channels
+
         version_url="${INSTALL_RKE2_CHANNEL_URL}/${INSTALL_RKE2_CHANNEL}"
+        # version_url=https://rancher-mirror.rancher.cn/rke2/channels/stable
+
         case ${DOWNLOADER} in
         *curl)
             version=$(${DOWNLOADER} -w "%{url_effective}" -L -s -S "${version_url}" -o /dev/null | sed -e 's|.*/||')
+            # /usr/bin/curl -w %{url_effective} -L -s -S https://rancher-mirror.rancher.cn/rke2/channels/stable -o /dev/null | sed -e s|.*/||
+            # version=stable
+
+            if [ "${INSTALL_RKE2_MIRROR}" = cn ]; then
+                version=$(${DOWNLOADER} -s -S "${version_url}")
+                # /usr/bin/curl -s -S https://rancher-mirror.rancher.cn/rke2/channels/stable
+                # version=v1.33.6+rke2r1
+            fi
             ;;
         *wget)
             version=$(${DOWNLOADER} -SqO /dev/null "${version_url}" 2>&1 | grep -i Location | sed -e 's|.*/||')
+            if [ "${INSTALL_RKE2_MIRROR}" = cn ]; then
+                version=$(${DOWNLOADER} -qO - "${version_url}")
+            fi
             ;;
         *)
             fatal "Unsupported downloader executable '${DOWNLOADER}'"
             ;;
         esac
+
         INSTALL_RKE2_VERSION="${version}"
+        # INSTALL_RKE2_VERSION=v1.33.6+rke2r1
+
+        if [ "${INSTALL_RKE2_MIRROR}" = cn ]; then
+            INSTALL_RKE2_VERSION=$( echo ${INSTALL_RKE2_VERSION} | sed 's/+/-/g')
+            # echo v1.33.6+rke2r1 | sed s/+/-/g
+            # INSTALL_RKE2_VERSION=v1.33.6-rke2r1
+        fi
     fi
 }
 
@@ -282,6 +363,9 @@ download() {
     case ${DOWNLOADER} in
     *curl)
         curl -o "$1" -fsSL "$2"
+        # curl -o /tmp/rke2-install.OVZEnZ4uJW/rke2.checksums -fsSL https://rancher-mirror.rancher.cn/rke2/releases/download/v1.33.5%2Drke2r1/sha256sum-amd64.txt
+        # curl -o /tmp/rke2-install.OVZEnZ4uJW/rke2.tarball -fsSL https://rancher-mirror.rancher.cn/rke2/releases/download/v1.33.5%2Drke2r1/rke2.linux-amd64.tar.gz
+
         ;;
     *wget)
         wget -qO "$1" "$2"
@@ -300,26 +384,53 @@ download() {
 # download_checksums downloads hash from github url.
 download_checksums() {
     version_urlsafe="$(echo ${INSTALL_RKE2_VERSION} | sed 's/\+/%2B/g')"
+    # echo v1.33.5+rke2r1 | sed s/\+/%2B/g
+    # version_urlsafe=v1.33.5%2Brke2r1
+
+    if [ "${INSTALL_RKE2_MIRROR}" = cn ]; then
+        version_urlsafe="$(echo "${INSTALL_RKE2_VERSION}" | sed 's/+/%2D/g')"
+        # echo v1.33.5+rke2r1 | sed s/+/%2D/g
+        # version_urlsafe=v1.33.5%2Drke2r1
+    fi
+
     if [ -n "${INSTALL_RKE2_COMMIT}" ]; then
         CHECKSUMS_URL=${STORAGE_URL}/rke2.${SUFFIX}-${INSTALL_RKE2_COMMIT}.tar.gz.sha256sum
     else
         CHECKSUMS_URL=${INSTALL_RKE2_ARTIFACT_URL}/${version_urlsafe}/sha256sum-${ARCH}.txt
     fi
+    # CHECKSUMS_URL=https://rancher-mirror.rancher.cn/rke2/releases/download/v1.33.5%2Drke2r1/sha256sum-amd64.txt
+
     info "downloading checksums at ${CHECKSUMS_URL}"
     download "${TMP_CHECKSUMS}" "${CHECKSUMS_URL}"
+    # download /tmp/rke2-install.OVZEnZ4uJW/rke2.checksums https://rancher-mirror.rancher.cn/rke2/releases/download/v1.33.5%2Drke2r1/sha256sum-amd64.txt
+
     CHECKSUM_EXPECTED=$(grep "rke2.${SUFFIX}.tar.gz" "${TMP_CHECKSUMS}" | awk '{print $1}')
+    # grep rke2.linux-amd64.tar.gz /tmp/rke2-install.OVZEnZ4uJW/rke2.checksums | awk {print $1}
+    # CHECKSUM_EXPECTED=e3329eaa8ed4d2aef9d295e435038423da390e70bb5c8675d92259ce07d75995
 }
 
 # download_tarball downloads binary from github url.
 download_tarball() {
     version_urlsafe="$(echo ${INSTALL_RKE2_VERSION} | sed 's/\+/%2B/g')"
+    # echo v1.33.5+rke2r1 | sed s/\+/%2B/g
+    # version_urlsafe=v1.33.5%2Brke2r1
+
+    if [ "${INSTALL_RKE2_MIRROR}" = cn ]; then
+        version_urlsafe="$(echo "${INSTALL_RKE2_VERSION}" | sed 's/+/%2D/g')"
+        # echo v1.33.5+rke2r1 | sed s/+/%2D/g
+        # version_urlsafe=v1.33.5%2Drke2r1
+    fi
     if [ -n "${INSTALL_RKE2_COMMIT}" ]; then
         TARBALL_URL=${STORAGE_URL}/rke2.${SUFFIX}-${INSTALL_RKE2_COMMIT}.tar.gz
     else
         TARBALL_URL=${INSTALL_RKE2_ARTIFACT_URL}/${version_urlsafe}/rke2.${SUFFIX}.tar.gz
     fi
+    # TARBALL_URL=https://rancher-mirror.rancher.cn/rke2/releases/download/v1.33.5%2Drke2r1/rke2.linux-amd64.tar.gz
+
     info "downloading tarball at ${TARBALL_URL}"
     download "${TMP_TARBALL}" "${TARBALL_URL}"
+    # download /tmp/rke2-install.OVZEnZ4uJW/rke2.tarball https://rancher-mirror.rancher.cn/rke2/releases/download/v1.33.5%2Drke2r1/rke2.linux-amd64.tar.gz
+
 }
 
 # download_dev_rpm downloads dev rpm from remote repository
@@ -371,6 +482,9 @@ stage_local_airgap_tarball() {
 verify_tarball() {
     info "verifying tarball"
     CHECKSUM_ACTUAL=$(sha256sum "${TMP_TARBALL}" | awk '{print $1}')
+    # sha256sum /tmp/rke2-install.OVZEnZ4uJW/rke2.tarball | awk {print $1}
+    # CHECKSUM_ACTUAL=e3329eaa8ed4d2aef9d295e435038423da390e70bb5c8675d92259ce07d75995
+
     if [ "${CHECKSUM_EXPECTED}" != "${CHECKSUM_ACTUAL}" ]; then
         fatal "download sha256 does not match ${CHECKSUM_EXPECTED}, got ${CHECKSUM_ACTUAL}"
     fi
@@ -380,7 +494,32 @@ verify_tarball() {
 unpack_tarball() {
     info "unpacking tarball file to ${INSTALL_RKE2_TAR_PREFIX}"
     mkdir -p ${INSTALL_RKE2_TAR_PREFIX}
+    # mkdir -p /usr/local
+
     tar xzf "${TMP_TARBALL}" -C "${INSTALL_RKE2_TAR_PREFIX}"
+    # tar xzf /tmp/rke2-install.OVZEnZ4uJW/rke2.tarball -C /usr/local
+
+    # $ tree -a ./usr/local
+    # ./usr/local
+    # ├── bin
+    # │   ├── rke2
+    # │   ├── rke2-killall.sh
+    # │   └── rke2-uninstall.sh
+    # ├── lib
+    # │   └── systemd
+    # │       └── system
+    # │           ├── rke2-agent.env
+    # │           ├── rke2-agent.service
+    # │           ├── rke2-server.env
+    # │           └── rke2-server.service
+    # └── share
+    #     └── rke2
+    #         ├── LICENSE.txt
+    #         └── rke2-cis-sysctl.conf
+
+    # 6 directories, 9 files
+    # $
+
     if [ "${INSTALL_RKE2_TAR_PREFIX}" != "${DEFAULT_TAR_PREFIX}" ]; then
         info "updating tarball contents to reflect install path"
         sed -i "s|${DEFAULT_TAR_PREFIX}|${INSTALL_RKE2_TAR_PREFIX}|" ${INSTALL_RKE2_TAR_PREFIX}/lib/systemd/system/rke2-*.service ${INSTALL_RKE2_TAR_PREFIX}/bin/rke2-uninstall.sh
@@ -687,6 +826,7 @@ do_install() {
         ;;
     *)
         do_install_tar "${INSTALL_RKE2_CHANNEL}"
+        # do_install_tar stable
         ;;
     esac
     if [ -z "${INSTALL_RKE2_SKIP_FAPOLICY}" ]; then
