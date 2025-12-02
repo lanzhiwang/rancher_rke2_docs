@@ -1,0 +1,160 @@
+(base) root@nj-p-zdtc-h20-059:/home/huzhi# export DEBUG=1 && export INSTALL_RKE2_MIRROR=cn && export INSTALL_RKE2_VERSION=v1.33.5+rke2r1 && ./get_rke2_io.sh > get_rke2_io.log 2>&1
+(base) root@nj-p-zdtc-h20-059:/home/huzhi# cat get_rke2_io.log
++ do_install
++ setup_env
++ STORAGE_URL=https://rke2-ci-builds.s3.dualstack.us-east-1.amazonaws.com
++ DEFAULT_TAR_PREFIX=/usr/local
++ id -u
++ [ ! 0 -eq 0 ]
++ [ -z  ]
++ INSTALL_RKE2_ARTIFACT_URL=https://github.com/rancher/rke2/releases/download
++ [ cn = cn ]
++ INSTALL_RKE2_ARTIFACT_URL=https://rancher-mirror.rancher.cn/rke2/releases/download
++ [ -z  ]
++ INSTALL_RKE2_CHANNEL=stable
++ [ -z  ]
++ INSTALL_RKE2_TYPE=server
++ echo INSTALL_RKE2_TYPE:server
+INSTALL_RKE2_TYPE:server
++ [ -z  ]
++ [ -z  ]
++ [ -z  ]
++ command -v yum
++ echo INSTALL_RKE2_METHOD:
+INSTALL_RKE2_METHOD:
++ [ -z  ]
++ INSTALL_RKE2_TAR_PREFIX=/usr/local
++ check_target_mountpoint
++ mountpoint -q /usr/local
++ check_target_ro
++ touch /usr/local/.rke2-ro-test
++ rm -rf /usr/local/.rke2-ro-test
++ test 0 -ne 0
++ [ -z  ]
++ INSTALL_RKE2_AGENT_IMAGES_DIR=/var/lib/rancher/rke2/agent/images
++ check_method_conflict
++ . /etc/os-release
++ PRETTY_NAME=Ubuntu 22.04.4 LTS
++ NAME=Ubuntu
++ VERSION_ID=22.04
++ VERSION=22.04.4 LTS (Jammy Jellyfish)
++ VERSION_CODENAME=jammy
++ ID=ubuntu
++ ID_LIKE=debian
++ HOME_URL=https://www.ubuntu.com/
++ SUPPORT_URL=https://help.ubuntu.com/
++ BUG_REPORT_URL=https://bugs.launchpad.net/ubuntu/
++ PRIVACY_POLICY_URL=https://www.ubuntu.com/legal/terms-and-policies/privacy-policy
++ UBUNTU_CODENAME=jammy
++ rpm -q rke2-common
++ setup_arch
++ uname -m
++ ARCH=amd64
++ uname -s
++ tr [:upper:] [:lower:]
++ SUFFIX=linux-amd64
++ [ -z  ]
++ verify_downloader curl
++ command -v curl
++ cmd=/usr/bin/curl
++ [ -z /usr/bin/curl ]
++ [ ! -x /usr/bin/curl ]
++ DOWNLOADER=/usr/bin/curl
++ return 0
++ do_install_tar stable
++ setup_tmp
++ mktemp -d -t rke2-install.XXXXXXXXXX
++ TMP_DIR=/tmp/rke2-install.OVZEnZ4uJW
++ TMP_CHECKSUMS=/tmp/rke2-install.OVZEnZ4uJW/rke2.checksums
++ TMP_TARBALL=/tmp/rke2-install.OVZEnZ4uJW/rke2.tarball
++ TMP_AIRGAP_CHECKSUMS=/tmp/rke2-install.OVZEnZ4uJW/rke2-images.checksums
++ TMP_AIRGAP_TARBALL=/tmp/rke2-install.OVZEnZ4uJW/rke2-images.tarball
++ trap cleanup INT EXIT
++ [ -n  ]
++ get_release_version
++ [ -z  ]
++ [ -z v1.33.5+rke2r1 ]
++ info using v1.33.5+rke2r1 as release
++ echo [INFO]  using v1.33.5+rke2r1 as release
+[INFO]  using v1.33.5+rke2r1 as release
++ download_airgap_checksums
++ [ -z  ]
++ return
++ download_airgap_tarball
++ [ -z  ]
++ return
++ download_checksums
++ echo v1.33.5+rke2r1
++ sed s/\+/%2B/g
++ version_urlsafe=v1.33.5%2Brke2r1
++ [ cn = cn ]
++ echo v1.33.5+rke2r1
++ sed s/+/%2D/g
++ version_urlsafe=v1.33.5%2Drke2r1
++ [ -n  ]
++ CHECKSUMS_URL=https://rancher-mirror.rancher.cn/rke2/releases/download/v1.33.5%2Drke2r1/sha256sum-amd64.txt
++ info downloading checksums at https://rancher-mirror.rancher.cn/rke2/releases/download/v1.33.5%2Drke2r1/sha256sum-amd64.txt
++ echo [INFO]  downloading checksums at https://rancher-mirror.rancher.cn/rke2/releases/download/v1.33.5%2Drke2r1/sha256sum-amd64.txt
+[INFO]  downloading checksums at https://rancher-mirror.rancher.cn/rke2/releases/download/v1.33.5%2Drke2r1/sha256sum-amd64.txt
++ download /tmp/rke2-install.OVZEnZ4uJW/rke2.checksums https://rancher-mirror.rancher.cn/rke2/releases/download/v1.33.5%2Drke2r1/sha256sum-amd64.txt
++ [ 2 -ne 2 ]
++ curl -o /tmp/rke2-install.OVZEnZ4uJW/rke2.checksums -fsSL https://rancher-mirror.rancher.cn/rke2/releases/download/v1.33.5%2Drke2r1/sha256sum-amd64.txt
++ [ 0 -ne 0 ]
++ grep rke2.linux-amd64.tar.gz /tmp/rke2-install.OVZEnZ4uJW/rke2.checksums
++ awk {print $1}
++ CHECKSUM_EXPECTED=e3329eaa8ed4d2aef9d295e435038423da390e70bb5c8675d92259ce07d75995
++ download_tarball
++ echo v1.33.5+rke2r1
++ sed s/\+/%2B/g
++ version_urlsafe=v1.33.5%2Brke2r1
++ [ cn = cn ]
++ echo v1.33.5+rke2r1
++ sed s/+/%2D/g
++ version_urlsafe=v1.33.5%2Drke2r1
++ [ -n  ]
++ TARBALL_URL=https://rancher-mirror.rancher.cn/rke2/releases/download/v1.33.5%2Drke2r1/rke2.linux-amd64.tar.gz
++ info downloading tarball at https://rancher-mirror.rancher.cn/rke2/releases/download/v1.33.5%2Drke2r1/rke2.linux-amd64.tar.gz
++ echo [INFO]  downloading tarball at https://rancher-mirror.rancher.cn/rke2/releases/download/v1.33.5%2Drke2r1/rke2.linux-amd64.tar.gz
+[INFO]  downloading tarball at https://rancher-mirror.rancher.cn/rke2/releases/download/v1.33.5%2Drke2r1/rke2.linux-amd64.tar.gz
++ download /tmp/rke2-install.OVZEnZ4uJW/rke2.tarball https://rancher-mirror.rancher.cn/rke2/releases/download/v1.33.5%2Drke2r1/rke2.linux-amd64.tar.gz
++ [ 2 -ne 2 ]
++ curl -o /tmp/rke2-install.OVZEnZ4uJW/rke2.tarball -fsSL https://rancher-mirror.rancher.cn/rke2/releases/download/v1.33.5%2Drke2r1/rke2.linux-amd64.tar.gz
++ [ 0 -ne 0 ]
++ verify_airgap_tarball
++ [ -z  ]
++ return
++ install_airgap_tarball
++ [ -z  ]
++ return
++ verify_tarball
++ info verifying tarball
++ echo [INFO]  verifying tarball
+[INFO]  verifying tarball
++ sha256sum /tmp/rke2-install.OVZEnZ4uJW/rke2.tarball
++ awk {print $1}
++ CHECKSUM_ACTUAL=e3329eaa8ed4d2aef9d295e435038423da390e70bb5c8675d92259ce07d75995
++ [ e3329eaa8ed4d2aef9d295e435038423da390e70bb5c8675d92259ce07d75995 != e3329eaa8ed4d2aef9d295e435038423da390e70bb5c8675d92259ce07d75995 ]
++ unpack_tarball
++ info unpacking tarball file to /usr/local
++ echo [INFO]  unpacking tarball file to /usr/local
+[INFO]  unpacking tarball file to /usr/local
++ mkdir -p /usr/local
++ tar xzf /tmp/rke2-install.OVZEnZ4uJW/rke2.tarball -C /usr/local
++ [ /usr/local != /usr/local ]
++ [ -z  ]
++ systemctl daemon-reload
++ [ -z  ]
++ setup_fapolicy_rules
++ [ -r /etc/redhat-release ]
++ [ -r /etc/centos-release ]
++ [ -r /etc/oracle-release ]
++ [ -r /etc/rocky-release ]
++ [ -r /etc/system-release ]
++ exit 0
++ cleanup
++ code=0
++ set +e
++ trap - EXIT
++ rm -rf /tmp/rke2-install.OVZEnZ4uJW
++ exit 0
+(base) root@nj-p-zdtc-h20-059:/home/huzhi#
